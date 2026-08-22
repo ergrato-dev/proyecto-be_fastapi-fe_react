@@ -107,9 +107,7 @@ describe("InputField", () => {
   // ¿Para qué? Confirmar que la prop icon se muestra correctamente.
   // ¿Impacto? Sin este test, podríamos romper los iconos sin darnos cuenta.
   it("renderiza el icono cuando se pasa la prop icon", () => {
-    render(
-      <InputField {...baseProps} icon={<span data-testid="test-icon">icon</span>} />,
-    );
+    render(<InputField {...baseProps} icon={<span data-testid="test-icon">icon</span>} />);
     expect(screen.getByTestId("test-icon")).toBeInTheDocument();
   });
 

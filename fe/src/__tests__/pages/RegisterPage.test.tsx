@@ -3,12 +3,50 @@
  * Descripción: Tests de la página de registro — campos, validación cliente, envío, errores.
  * ¿Para qué? Asegurar que el flujo de registro funciona correctamente y valida inputs.
  * ¿Impacto? Si el registro falla silenciosamente, los usuarios no podrían crear cuentas.
+ *
+ * NOTA: el formulario exige los tres consentimientos legales (Ley 1581/2012, Ley 1480/2011)
+ * y mantiene el botón deshabilitado hasta que todos los campos tengan valor. Por eso los
+ * tests llenan el formulario con el helper `fillForm` antes de intentar enviarlo.
  */
 
 import { createEvent, fireEvent, screen } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import userEvent from "@testing-library/user-event";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { renderWithProviders } from "../helpers";
+
+// ¿Qué? Valores por defecto de un formulario de registro válido.
+// ¿Para qué? Cada test sobreescribe solo el campo que quiere poner a prueba.
+// ¿Impacto? Evita repetir seis `user.type` en cada caso.
+const VALID_FORM = {
+  Nombres: "Juan",
+  Apellidos: "Pérez",
+  "Correo electrónico": "juan@nn.com",
+  "Confirmar correo electrónico": "juan@nn.com",
+  Contraseña: "Password1",
+  "Confirmar contraseña": "Password1",
+};
+
+/**
+ * ¿Qué? Llena el formulario y marca los tres consentimientos legales.
+ * ¿Para qué? El botón "Crear cuenta" está deshabilitado mientras falte un campo o un
+ *            consentimiento — sin esto, el click no dispara la validación y nada se muestra.
+ * ¿Impacto? Permite que cada test se centre en el campo inválido que quiere verificar.
+ */
+async function fillForm(user: UserEvent, overrides: Partial<typeof VALID_FORM> = {}) {
+  const values = { ...VALID_FORM, ...overrides };
+
+  for (const [label, value] of Object.entries(values)) {
+    if (value === "") continue;
+    await user.type(screen.getByLabelText(label), value);
+  }
+
+  // ¿Qué? Los tres checkboxes de consentimiento legal.
+  // ¿Impacto? Sin marcarlos, `isButtonEnabled` es false y el submit nunca ocurre.
+  for (const checkbox of screen.getAllByRole("checkbox")) {
+    await user.click(checkbox);
+  }
+}
 
 describe("RegisterPage", () => {
   // ¿Qué? Verifica que todos los campos del formulario están presentes.
@@ -26,9 +64,43 @@ describe("RegisterPage", () => {
   });
 
   // ¿Qué? Verifica que existe enlace a login.
+  // ¿Para qué? La página lo ofrece dos veces (aviso de verificación y pie del formulario),
+  //            por eso se consultan todos los enlaces con ese nombre y no uno solo.
   it("muestra enlace a iniciar sesión", () => {
     renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
-    expect(screen.getByText("Iniciar sesión")).toBeInTheDocument();
+
+    const loginLinks = screen.getAllByRole("link", { name: "Iniciar sesión" });
+    expect(loginLinks.length).toBeGreaterThan(0);
+    expect(loginLinks[0]).toHaveAttribute("href", "/login");
+  });
+
+  // ¿Qué? Verifica que el botón sigue bloqueado si falta un campo obligatorio.
+  // ¿Para qué? Es la primera barrera del formulario: sin todos los campos no hay envío.
+  // ¿Impacto? Si el botón se habilitara, se enviarían registros incompletos al backend.
+  it("mantiene deshabilitado el botón si falta un campo", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
+
+    await fillForm(user, { "Confirmar correo electrónico": "" });
+
+    expect(screen.getByRole("button", { name: "Crear cuenta" })).toBeDisabled();
+  });
+
+  // ¿Qué? Verifica que el botón sigue bloqueado si falta un consentimiento legal.
+  // ¿Para qué? Ley 1581/2012 — el consentimiento debe ser explícito, no asumido.
+  // ¿Impacto? Sin este bloqueo, se registrarían usuarios sin aceptar los documentos legales.
+  it("mantiene deshabilitado el botón si falta un consentimiento", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
+
+    for (const [label, value] of Object.entries(VALID_FORM)) {
+      await user.type(screen.getByLabelText(label), value);
+    }
+    const [terms, privacy] = screen.getAllByRole("checkbox");
+    await user.click(terms);
+    await user.click(privacy);
+
+    expect(screen.getByRole("button", { name: "Crear cuenta" })).toBeDisabled();
   });
 
   // ¿Qué? Verifica validación de nombre corto.
@@ -36,12 +108,7 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
     renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
 
-    await user.type(screen.getByLabelText("Nombres"), "A");
-    await user.type(screen.getByLabelText("Apellidos"), "B");
-    await user.type(screen.getByLabelText("Correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Confirmar correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Contraseña"), "Password1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Password1");
+    await fillForm(user, { Nombres: "A" });
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(screen.getByText("El nombre debe tener al menos 2 caracteres")).toBeInTheDocument();
@@ -52,12 +119,7 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
     renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
 
-    await user.type(screen.getByLabelText("Nombres"), "Test");
-    await user.type(screen.getByLabelText("Apellidos"), "User");
-    await user.type(screen.getByLabelText("Correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Confirmar correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Contraseña"), "Ab1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Ab1");
+    await fillForm(user, { Contraseña: "Ab1", "Confirmar contraseña": "Ab1" });
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(screen.getByText("Mínimo 8 caracteres")).toBeInTheDocument();
@@ -68,12 +130,7 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
     renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
 
-    await user.type(screen.getByLabelText("Nombres"), "Test");
-    await user.type(screen.getByLabelText("Apellidos"), "User");
-    await user.type(screen.getByLabelText("Correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Confirmar correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Contraseña"), "Password1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Password2");
+    await fillForm(user, { "Confirmar contraseña": "Password2" });
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(screen.getByText("Las contraseñas no coinciden")).toBeInTheDocument();
@@ -86,31 +143,10 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
     renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
 
-    await user.type(screen.getByLabelText("Nombres"), "Test");
-    await user.type(screen.getByLabelText("Apellidos"), "User");
-    await user.type(screen.getByLabelText("Correo electrónico"), "a@b.com");
-    await user.type(screen.getByLabelText("Confirmar correo electrónico"), "otro@b.com");
-    await user.type(screen.getByLabelText("Contraseña"), "Password1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Password1");
+    await fillForm(user, { "Confirmar correo electrónico": "otro@b.com" });
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(screen.getByText("Los correos electrónicos no coinciden")).toBeInTheDocument();
-  });
-
-  // ¿Qué? Verifica validación cuando el campo confirmar correo está vacío.
-  it("muestra error si el campo confirmar correo está vacío", async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<RegisterPage />, { initialRoute: "/register" });
-
-    await user.type(screen.getByLabelText("Nombres"), "Test");
-    await user.type(screen.getByLabelText("Apellidos"), "User");
-    await user.type(screen.getByLabelText("Correo electrónico"), "a@b.com");
-    // ¿Intencionalmente no se escribe en "Confirmar correo electrónico"
-    await user.type(screen.getByLabelText("Contraseña"), "Password1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Password1");
-    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
-
-    expect(screen.getByText("Debes confirmar tu correo electrónico")).toBeInTheDocument();
   });
 
   // ¿Qué? Verifica que el campo "confirmar correo" bloquea el pegado.
@@ -150,12 +186,7 @@ describe("RegisterPage", () => {
       authContext: { register: registerMock },
     });
 
-    await user.type(screen.getByLabelText("Nombres"), "Juan");
-    await user.type(screen.getByLabelText("Apellidos"), "Pérez");
-    await user.type(screen.getByLabelText("Correo electrónico"), "juan@nn.com");
-    await user.type(screen.getByLabelText("Confirmar correo electrónico"), "juan@nn.com");
-    await user.type(screen.getByLabelText("Contraseña"), "Password1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Password1");
+    await fillForm(user);
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(registerMock).toHaveBeenCalledWith({
@@ -176,12 +207,7 @@ describe("RegisterPage", () => {
       authContext: { register: registerMock },
     });
 
-    await user.type(screen.getByLabelText("Nombres"), "Test");
-    await user.type(screen.getByLabelText("Apellidos"), "User");
-    await user.type(screen.getByLabelText("Correo electrónico"), "dup@nn.com");
-    await user.type(screen.getByLabelText("Confirmar correo electrónico"), "dup@nn.com");
-    await user.type(screen.getByLabelText("Contraseña"), "Password1");
-    await user.type(screen.getByLabelText("Confirmar contraseña"), "Password1");
+    await fillForm(user);
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(await screen.findByText("El email ya está registrado")).toBeInTheDocument();

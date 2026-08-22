@@ -98,17 +98,13 @@ describe("ResetPasswordPage", () => {
     await user.click(screen.getByRole("button", { name: "Restablecer contraseña" }));
 
     expect(
-      await screen.findByText(
-        "Contraseña restablecida exitosamente. Ya puedes iniciar sesión.",
-      ),
+      await screen.findByText("Contraseña restablecida exitosamente. Ya puedes iniciar sesión."),
     ).toBeInTheDocument();
   });
 
   // ¿Qué? Verifica que muestra error del backend (token expirado, etc.).
   it("muestra error si resetPassword falla", async () => {
-    const resetPasswordMock = vi
-      .fn()
-      .mockRejectedValue(new Error("Token expirado o ya utilizado"));
+    const resetPasswordMock = vi.fn().mockRejectedValue(new Error("Token expirado o ya utilizado"));
     const user = userEvent.setup();
 
     renderWithProviders(<ResetPasswordPage />, {

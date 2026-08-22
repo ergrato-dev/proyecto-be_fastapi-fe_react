@@ -24,13 +24,10 @@ describe("Alert", () => {
   });
 
   // ¿Qué? Verifica las tres variantes de tipo.
-  it.each(["success", "error", "info"] as const)(
-    "renderiza correctamente el tipo '%s'",
-    (type) => {
-      render(<Alert type={type} message={`Alerta ${type}`} />);
-      expect(screen.getByText(`Alerta ${type}`)).toBeInTheDocument();
-    },
-  );
+  it.each(["success", "error", "info"] as const)("renderiza correctamente el tipo '%s'", (type) => {
+    render(<Alert type={type} message={`Alerta ${type}`} />);
+    expect(screen.getByText(`Alerta ${type}`)).toBeInTheDocument();
+  });
 
   // ¿Qué? Verifica que no se muestra botón de cierre si no se pasa onClose.
   it("no muestra botón de cierre sin onClose", () => {
