@@ -1,0 +1,89 @@
+# ========================
+# NN Auth System — Plantilla de Issue: Bug
+# ========================
+# ¿Qué? Formulario para reportar un comportamiento incorrecto de forma reproducible.
+# ¿Para qué? Un bug sin pasos para reproducirlo no se puede arreglar ni verificar.
+# ¿Impacto? Sin esta estructura se pierde tiempo preguntando "¿y qué hiciste exactamente?"
+#           en vez de corregir el error.
+
+name: "🐛 Bug"
+description: Algo no funciona como debería.
+title: "[Bug] "
+labels: ["type:bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrir: revisa `docs/setup/con-docker.md` o `docs/setup/sin-docker.md`.
+        Muchos "bugs" son un `.env` incompleto o migraciones sin correr.
+
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      description: Numerados, desde un entorno limpio. Cualquiera debe poder repetirlos.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Resultado esperado
+      placeholder: "El login devuelve 200 y redirige al dashboard."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Resultado real
+      placeholder: "El login devuelve 500 y la página queda en blanco."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: entorno
+    attributes:
+      label: Entorno
+      options:
+        - Con Docker (docs/setup/con-docker.md)
+        - Sin Docker (docs/setup/sin-docker.md)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: capa
+    attributes:
+      label: ¿Dónde ocurre?
+      multiple: true
+      options:
+        - Backend (be/)
+        - Frontend (fe/)
+        - Base de datos
+        - No lo sé todavía
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs o error exacto
+      description: |
+        Pega el error tal cual (traceback del backend, consola del navegador, red).
+        Se formatea solo como bloque de código.
+      render: shell
+
+  - type: checkboxes
+    id: verificacion
+    attributes:
+      label: Verificación previa
+      options:
+        - label: Mi `.env` está creado a partir de `.env.example` y completo.
+          required: true
+        - label: Corrí las migraciones (`alembic upgrade head`).
+          required: true

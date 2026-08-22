@@ -1,0 +1,81 @@
+# ========================
+# NN Auth System — Plantilla de Issue: Tarea (HU/RF)
+# ========================
+# ¿Qué? Formulario para declarar una unidad de trabajo trazable a una HU o RF del proyecto.
+# ¿Para qué? Que cada rama y cada PR nazcan de un requisito documentado, no de una ocurrencia.
+# ¿Impacto? Sin trazabilidad HU/RF → issue → PR, el instructor no puede verificar qué
+#           requisito cubriste ni por qué escribiste ese código.
+
+name: "📋 Tarea (HU/RF)"
+description: Trabajo planificado que implementa o modifica un requisito documentado.
+title: "[Tarea] "
+labels: ["type:feat"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Una tarea = una rama = un PR. Si no cabe en un PR revisable, divídela en varios issues.
+
+  - type: input
+    id: requisito
+    attributes:
+      label: Requisito de referencia
+      description: |
+        HU o RF que cubre esta tarea. Ver `docs/requisitos/HUs/` y `docs/requisitos/RFs/`.
+      placeholder: "RF-014 (i18n) — docs/requisitos/RFs/RF-014_i18n.md"
+    validations:
+      required: true
+
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Qué debe existir cuando esta tarea esté cerrada. Una o dos frases.
+      placeholder: "El usuario puede guardar su idioma preferido y lo conserva al volver a entrar."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afectada
+      description: Marca todo lo que vayas a tocar.
+      multiple: true
+      options:
+        - Backend (be/)
+        - Frontend (fe/)
+        - Base de datos / migración Alembic
+        - Documentación (docs/)
+        - Configuración / infraestructura
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptación
+      description: |
+        Condiciones verificables. Si no se puede comprobar, no es un criterio.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ] Tests que cubren el cambio pasan en verde
+    validations:
+      required: true
+
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas técnicas (opcional)
+      description: Archivos que crees que hay que tocar, dudas abiertas, decisiones pendientes.
+
+  - type: checkboxes
+    id: convenciones
+    attributes:
+      label: Antes de empezar
+      options:
+        - label: Leí `docs/colaboracion/flujo-github.md` y sé cómo nombrar la rama.
+          required: true
+        - label: Este issue no duplica otro ya abierto.
+          required: true

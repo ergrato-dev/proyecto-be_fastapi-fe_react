@@ -1,0 +1,53 @@
+# ========================
+# NN Auth System — Plantilla de Issue: Mejora
+# ========================
+# ¿Qué? Formulario para proponer un cambio que no arregla un bug ni implementa una HU/RF nueva.
+# ¿Para qué? Separar "esto está roto" de "esto se puede hacer mejor" — se priorizan distinto.
+# ¿Impacto? Sin este canal, las mejoras se cuelan como cambios sorpresa dentro de otros PRs.
+
+name: "✨ Mejora"
+description: Refactor, mejora de rendimiento, accesibilidad, documentación o experiencia de desarrollo.
+title: "[Mejora] "
+labels: ["type:docs"]
+
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Situación actual
+      description: Qué molesta, confunde o cuesta hoy. Sé concreto — cita archivos si aplica.
+      placeholder: "Los tests del backend solo cubren auth; no hay tests de services/."
+    validations:
+      required: true
+
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Propuesta
+      description: Qué cambiarías exactamente.
+    validations:
+      required: true
+
+  - type: textarea
+    id: beneficio
+    attributes:
+      label: ¿Qué mejora concretamente?
+      description: Mantenibilidad, seguridad, rendimiento, accesibilidad, claridad para quien aprende…
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas (opcional)
+      description: Otras formas de resolverlo y por qué las descartaste.
+
+  - type: checkboxes
+    id: restricciones
+    attributes:
+      label: Compatibilidad con las reglas del proyecto
+      options:
+        - label: No introduce dependencias sin pinear ni cambia de gestor de paquetes (`venv` / `pnpm`).
+          required: true
+        - label: Revisé `docs/requisitos/restricciones.md` y la propuesta no las rompe.
+          required: true

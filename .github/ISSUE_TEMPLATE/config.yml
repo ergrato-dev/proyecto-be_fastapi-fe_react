@@ -1,0 +1,21 @@
+# ========================
+# NN Auth System — Configuración de plantillas de Issue
+# ========================
+# ¿Qué? Desactiva los issues en blanco y añade enlaces de ayuda al formulario de "New issue".
+# ¿Para qué? Obligar a usar una plantilla — un issue sin contexto no es trabajo trazable.
+# ¿Impacto? Sin esto, cualquiera abre un issue de una línea que nadie puede estimar ni revisar.
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📖 Cómo trabajar con Issues y Pull Requests
+    url: https://github.com/ergrato-dev/proyecto-be_fastapi-fe_react/blob/main/docs/colaboracion/flujo-github.md
+    about: Lee esto primero — el ciclo completo issue → rama → PR → review → merge.
+
+  - name: 🧭 Bitácora obligatoria del aprendiz
+    url: https://github.com/ergrato-dev/proyecto-be_fastapi-fe_react/blob/main/BITACORA.md
+    about: Checklist fase por fase que el instructor verifica en tu propio repo.
+
+  - name: ⚙️ Problemas al levantar el proyecto
+    url: https://github.com/ergrato-dev/proyecto-be_fastapi-fe_react/tree/main/docs/setup
+    about: Revisa las guías de setup (con y sin Docker) antes de reportar un bug de entorno.

@@ -1,0 +1,144 @@
+# ========================
+# NN Auth System — Integración Continua (CI)
+# ========================
+# ¿Qué? Ejecuta lint, formato, build y tests del backend y del frontend en cada PR.
+# ¿Para qué? Que el aprendiz vea en su propio repo si un cambio rompe algo ANTES de mergear,
+#            igual que en un equipo real donde nadie mergea con los checks en rojo.
+# ¿Impacto? Sin CI, un PR puede mergearse con tests rotos o lint sucio y el error se
+#           descubre tarde. Con CI, el PR queda bloqueado hasta que el código pase.
+#
+# NOTA PARA EL APRENDIZ: en un fork las GitHub Actions vienen DESHABILITADAS.
+# Actívalas en la pestaña "Actions" de tu repo antes de abrir tu primer PR.
+# Ver docs/colaboracion/flujo-github.md
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Principio de mínimo privilegio: la CI solo necesita leer el código
+permissions:
+  contents: read
+
+# ¿Qué? Cancela ejecuciones anteriores del mismo PR cuando se hace un push nuevo.
+# ¿Para qué? No gastar minutos de runner revisando un commit que ya quedó obsoleto.
+# ¿Impacto? Solo se reporta el resultado del último commit de la rama.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ────────────────────────────
+  # 🐍 Backend — ruff + pytest
+  # ────────────────────────────
+  backend:
+    name: Backend (ruff + pytest)
+    runs-on: ubuntu-24.04
+
+    # ¿Qué? Levanta un PostgreSQL temporal solo para esta ejecución.
+    # ¿Para qué? Los tests de be/app/tests/conftest.py crean y destruyen tablas reales,
+    #            no usan SQLite ni mocks — necesitan una BD de verdad.
+    # ¿Impacto? Sin este servicio, pytest falla al conectar en el primer fixture.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: nn_user
+          POSTGRES_PASSWORD: nn_password
+          POSTGRES_DB: nn_auth_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nn_user -d nn_auth_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Credenciales del servicio de arriba — desechables, existen solo durante el job.
+      DATABASE_URL: postgresql://nn_user:nn_password@localhost:5432/nn_auth_db
+      # SECRET_KEY exige mínimo 32 caracteres (be/app/config.py). Valor de prueba, nunca real.
+      SECRET_KEY: ci-test-secret-key-not-for-production-32
+      ENVIRONMENT: testing
+
+    defaults:
+      run:
+        working-directory: be
+
+    steps:
+      # actions/checkout@v7.0.1
+      # SHA pinado para prevenir supply chain attacks (tag mutable → SHA inmutable)
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      # astral-sh/setup-uv@v10.0.1
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+        with:
+          version: "0.12.5"
+          python-version: "3.12"
+          enable-cache: true
+
+      # ¿Qué? Instala las dependencias exactas del uv.lock commiteado.
+      # ¿Para qué? --frozen falla si el lock no coincide con pyproject.toml.
+      # ¿Impacto? Garantiza que la CI corre con las MISMAS versiones que tu máquina.
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      - name: Lint (ruff check)
+        run: uv run ruff check app/
+
+      - name: Formato (ruff format --check)
+        run: uv run ruff format --check app/
+
+      - name: Tests (pytest)
+        run: uv run pytest -v
+
+  # ────────────────────────────
+  # ⚛️ Frontend — ESLint + Prettier + build + vitest
+  # ────────────────────────────
+  frontend:
+    name: Frontend (lint + build + vitest)
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        working-directory: fe
+
+    steps:
+      # actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      # pnpm/action-setup@v6.0.10
+      # El proyecto usa pnpm SIEMPRE — nunca npm ni yarn (.github/copilot-instructions.md §4.2)
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 11.0.9
+
+      # actions/setup-node@v7.0.0
+      - name: Instalar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: fe/pnpm-lock.yaml
+
+      # ¿Qué? --frozen-lockfile falla si package.json y pnpm-lock.yaml no coinciden.
+      # ¿Para qué? Evitar que la CI instale versiones distintas a las tuyas.
+      # ¿Impacto? Si olvidaste commitear el lock actualizado, el PR se pone en rojo aquí.
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (ESLint)
+        run: pnpm lint
+
+      - name: Formato (Prettier)
+        run: pnpm format:check
+
+      - name: Build (tsc + vite)
+        run: pnpm build
+
+      - name: Tests (vitest)
+        run: pnpm test
