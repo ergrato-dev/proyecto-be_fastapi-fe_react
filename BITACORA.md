@@ -102,7 +102,30 @@ cambio** de la Fase 3 y/o Fase 4:
 
 - [ ] Commit: `docs: bitácora fase 5` → hash: `___________`
 
+## Fase 6 — Colaborar como en un equipo real
+
+Lee [`docs/colaboracion/flujo-github.md`](docs/colaboracion/flujo-github.md) y aplica el ciclo
+completo **en tu propio repo**: issue → rama → commits → Pull Request → revisión → merge.
+El repo original no acepta PRs externos; esta fase se hace y se evidencia en tu fork.
+
+- [ ] Issue abierto con la plantilla "Tarea (HU/RF)", referenciando un RF o HU real
+      → número: `#______`
+- [ ] Rama creada con la convención `<tipo>/<issue>-<slug-en-ingles>`
+      → nombre: `___________________________`
+- [ ] PR abierto con `Closes #N` y el checklist de la plantilla completo → número: `#______`
+- [ ] CI en verde en ese PR (enlace al run o captura en tu repo)
+      → enlace: `___________________________`
+- [ ] Revisión hecha: en equipo, un compañero aprobó; individual, comentaste tu propio diff
+      línea a línea antes de mergear.
+- [ ] Merge realizado y el issue se cerró **solo** → merge commit hash: `___________`
+- [ ] Explica qué revisaste en el diff y qué habrías pedido cambiar si el PR fuera de otra
+      persona:
+
+```
+(tu respuesta aquí)
+```
+
 ---
 
-Al completar las 6 fases, tu bitácora queda como parte del historial de tu repo — es la
+Al completar las 7 fases, tu bitácora queda como parte del historial de tu repo — es la
 evidencia que el instructor revisa para verificar comprensión, no solo funcionalidad visual.

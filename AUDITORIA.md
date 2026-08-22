@@ -27,8 +27,11 @@ PostgreSQL). ✅ Sin acción requerida.
 
 Gaps identificados — **quedan documentados, no se corrigen en esta ronda**:
 
-- `.github/workflows/` solo tiene `close-prs.yml` (bot que cierra PRs externos). No hay CI que
-  corra tests/lint/build en cada push o PR.
+- ~~`.github/workflows/` solo tiene `close-prs.yml` (bot que cierra PRs externos). No hay CI que
+  corra tests/lint/build en cada push o PR.~~ **Resuelto**: se agregó
+  `.github/workflows/ci.yml` (ruff + pytest con PostgreSQL de servicio, ESLint + Prettier +
+  build + vitest), junto con plantillas de Issue/PR y la guía
+  `docs/colaboracion/flujo-github.md`.
 - Backend tiene un solo archivo de test (`be/app/tests/test_auth.py`) pese a una superficie de
   auth completa (JWT, reset de password, verificación de email, rate limiting). El frontend, en
   cambio, tiene 13 archivos de test — asimetría marcada entre BE y FE.
@@ -64,8 +67,9 @@ Hallazgo a documentar (no urgente, es dev-only y el propio README lo advierte en
 
 ## Próximos pasos sugeridos (fuera de alcance de esta ronda)
 
-1. Agregar workflow de CI (`.github/workflows/ci.yml`) que corra `ruff`, `pytest`, ESLint y
-   `vitest` en cada PR.
+1. ~~Agregar workflow de CI (`.github/workflows/ci.yml`) que corra `ruff`, `pytest`, ESLint y
+   `vitest` en cada PR.~~ ✅ **Hecho** — incluye además `ISSUE_TEMPLATE/`,
+   `PULL_REQUEST_TEMPLATE.md` y la guía de colaboración para los aprendices.
 2. Ampliar cobertura de tests backend más allá de auth (services, utils, otros routers si los
    hay).
 3. Agregar `.pre-commit-config.yaml` reutilizando la config de lint ya existente.

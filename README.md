@@ -21,6 +21,10 @@ aprendizaje, completa la [**Bitácora obligatoria**](BITACORA.md) — es un chec
 que verifica, con commits de tu propio repo, que entendiste el flujo real (arquitectura, auth,
 base de datos) y no solo la apariencia.
 
+Este repo **no acepta pull requests externos** (un bot los cierra automáticamente): el ciclo de
+colaboración —issues, ramas, PRs, revisión y merge— se practica en **tu propio fork**, siguiendo
+[`docs/colaboracion/flujo-github.md`](docs/colaboracion/flujo-github.md).
+
 ---
 
 ## 📋 Tabla de Contenidos
@@ -271,6 +275,7 @@ proyecto/
 | TypeScript           | strict mode + ESLint + Prettier                  |
 | Gestor de paquetes   | `venv` (Python), `pnpm` (Node.js)                |
 | Testing              | Código generado = código probado                 |
+| Ramas y PRs          | `<tipo>/<issue>-<slug>` + PR con `Closes #N`     |
 
 Para las reglas completas, ver [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
 
@@ -282,6 +287,7 @@ Para las reglas completas, ver [`.github/copilot-instructions.md`](.github/copil
 | -------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | [`BITACORA.md`](BITACORA.md)                                                                 | Checklist obligatorio de aprendizaje, fase por fase       |
 | [`AUDITORIA.md`](AUDITORIA.md)                                                               | Auditoría de pertinencia/relevancia/completitud/actualidad/seguridad |
+| [`docs/colaboracion/flujo-github.md`](docs/colaboracion/flujo-github.md)                     | Flujo de Issues, ramas, Pull Requests, revisión y merge  |
 | [`docs/referencia-tecnica/architecture.md`](docs/referencia-tecnica/architecture.md)         | Arquitectura general, flujos y decisiones técnicas       |
 | [`docs/referencia-tecnica/api-endpoints.md`](docs/referencia-tecnica/api-endpoints.md)       | Todos los endpoints con parámetros, respuestas y errores |
 | [`docs/referencia-tecnica/database-schema.md`](docs/referencia-tecnica/database-schema.md)   | Esquema ER, tablas, columnas y migraciones               |
