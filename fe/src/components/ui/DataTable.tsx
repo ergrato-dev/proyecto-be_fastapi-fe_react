@@ -415,12 +415,18 @@ function SortIcon({ direction }: Readonly<SortIconProps>) {
 
   if (direction === "asc") {
     return (
-      <ChevronUp className={`${baseClass} text-accent-600 dark:text-accent-400`} aria-hidden="true" />
+      <ChevronUp
+        className={`${baseClass} text-accent-600 dark:text-accent-400`}
+        aria-hidden="true"
+      />
     );
   }
   if (direction === "desc") {
     return (
-      <ChevronDown className={`${baseClass} text-accent-600 dark:text-accent-400`} aria-hidden="true" />
+      <ChevronDown
+        className={`${baseClass} text-accent-600 dark:text-accent-400`}
+        aria-hidden="true"
+      />
     );
   }
   return (

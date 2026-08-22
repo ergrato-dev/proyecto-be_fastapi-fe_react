@@ -64,9 +64,7 @@ api.interceptors.response.use(
       // ¿Qué? Manejo especial para errores de validación Pydantic (422).
       // ¿Para qué? Los errores 422 tienen estructura { detail: [{loc, msg, type}] }.
       if (error.response.status === 422 && Array.isArray(data.detail)) {
-        const messages = data.detail.map(
-          (err: { msg: string }) => err.msg,
-        );
+        const messages = data.detail.map((err: { msg: string }) => err.msg);
         error.message = messages.join(". ");
       } else if (typeof data.detail === "string") {
         error.message = data.detail;
