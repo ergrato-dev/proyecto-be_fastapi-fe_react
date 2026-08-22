@@ -25,9 +25,17 @@ export function VerifyEmailPage() {
   // ¿Para qué? Extraer el token UUID que viene en el enlace del email de verificación.
   // ¿Impacto? Si no hay token en la URL, mostramos error inmediatamente.
   const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<VerifyStatus>("loading");
-  const [message, setMessage] = useState<string>("");
+  // ¿Qué? Estado inicial derivado directamente de la URL, no dentro de un efecto.
+  // ¿Para qué? Si no hay token, el resultado ya se conoce en el primer render: no hace falta
+  //            renderizar "cargando" para inmediatamente después corregirlo con setState.
+  // ¿Impacto? Evita el render en cascada que penaliza React (`react-hooks/set-state-in-effect`)
+  //           y elimina el parpadeo del spinner cuando el enlace viene sin token.
+  const [status, setStatus] = useState<VerifyStatus>(token ? "loading" : "error");
+  const [message, setMessage] = useState<string>(
+    token ? "" : "El enlace de verificación no es válido. No se encontró un token.",
+  );
 
   // ¿Qué? Ref para evitar que useEffect llame a la API dos veces en React StrictMode.
   // ¿Para qué? En desarrollo, React monta, desmonta y vuelve a montar los componentes —
@@ -36,20 +44,14 @@ export function VerifyEmailPage() {
   const hasCalled = useRef(false);
 
   useEffect(() => {
+    // ¿Qué? Sin token no hay nada que consultar — el estado de error ya se fijó arriba.
+    // ¿Para qué? Evitar una llamada inútil a la API con un token vacío.
+    // ¿Impacto? El usuario ve un mensaje claro en lugar de un error genérico del servidor.
+    if (!token) return;
+
     // ¿Qué? Evitar doble ejecución en React StrictMode (desarrollo).
     if (hasCalled.current) return;
     hasCalled.current = true;
-
-    const token = searchParams.get("token");
-
-    // ¿Qué? Si no hay token en la URL, no llamamos a la API.
-    // ¿Para qué? Evitar una llamada inútil con un token vacío.
-    // ¿Impacto? El usuario ve un mensaje de error claro en lugar de un error genérico del servidor.
-    if (!token) {
-      setStatus("error");
-      setMessage("El enlace de verificación no es válido. No se encontró un token.");
-      return;
-    }
 
     // ¿Qué? Función async para llamar al endpoint de verificación.
     // ¿Para qué? No se pueden usar funciones async directamente en useEffect.
@@ -69,7 +71,7 @@ export function VerifyEmailPage() {
     }
 
     verify();
-  }, [searchParams]);
+  }, [token]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">

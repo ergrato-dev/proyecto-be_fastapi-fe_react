@@ -7,10 +7,8 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import {
-  calculatePasswordStrength,
-  PasswordStrengthIndicator,
-} from "@/components/ui/PasswordStrengthIndicator";
+import { PasswordStrengthIndicator } from "@/components/ui/PasswordStrengthIndicator";
+import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
 // ════════════════════════════════════════
 // Tests de la función calculatePasswordStrength (lógica pura)

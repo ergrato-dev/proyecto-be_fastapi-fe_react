@@ -7,35 +7,11 @@
  *           formulario falla — este componente educa en tiempo real.
  */
 
-/**
- * ¿Qué? Nivel de fortaleza calculado a partir de los criterios de la contraseña.
- * ¿Para qué? Tipado explícito para evitar valores inválidos en el cálculo de fortaleza.
- * ¿Impacto? TypeScript garantiza que solo se usen los cuatro valores definidos.
- */
-export type PasswordStrength = 0 | 1 | 2 | 3 | 4;
-
-/**
- * ¿Qué? Calcula la fortaleza de una contraseña evaluando cuatro criterios.
- * ¿Para qué? Centralizamos la lógica de cálculo fuera del componente para poder testearla
- *            de forma independiente y reutilizarla si fuese necesario.
- * ¿Impacto? Un punto por cada criterio:
- *           1 — longitud >= 8 caracteres
- *           2 — contiene al menos una letra mayúscula
- *           3 — contiene al menos una letra minúscula
- *           4 — contiene al menos un número
- *           Total 0 (vacío), 1 (muy débil), 2 (débil), 3 (buena), 4 (fuerte).
- */
-export function calculatePasswordStrength(password: string): PasswordStrength {
-  if (!password) return 0;
-
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-
-  return score as PasswordStrength;
-}
+// ¿Qué? La lógica de cálculo vive en utils/ y no aquí.
+// ¿Para qué? Un archivo de componente que también exporta funciones rompe el Fast Refresh
+//            de Vite (regla `react-refresh/only-export-components`).
+// ¿Impacto? Este archivo exporta únicamente el componente; el cálculo se testea por separado.
+import { calculatePasswordStrength, type PasswordStrength } from "@/utils/passwordStrength";
 
 // ¿Qué? Metadatos de presentación indexados por nivel de fortaleza.
 // ¿Para qué? Evitar condicionales repetitivos — un solo lookup da etiqueta y color.
