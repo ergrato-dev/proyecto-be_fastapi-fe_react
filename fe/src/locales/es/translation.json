@@ -2,7 +2,6 @@
   "nav": {
     "brand": "NN Auth",
     "logout": "Salir",
-    "language": "Idioma",
     "sidebar": {
       "dashboard": "Panel principal",
       "employees": "Empleados",
@@ -13,7 +12,6 @@
     }
   },
   "common": {
-    "loading": "Cargando...",
     "email": "Correo electrónico",
     "emailPlaceholder": "correo@ejemplo.com",
     "password": "Contraseña",
@@ -22,8 +20,6 @@
     "lastName": "Apellidos",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "back": "Volver",
-    "or": "o",
     "close": "Cerrar"
   },
   "auth": {
@@ -73,16 +69,9 @@
       "currentPassword": "Contraseña actual",
       "newPassword": "Nueva contraseña",
       "confirmPassword": "Confirmar nueva contraseña",
-      "submit": "Cambiar contraseña",
       "successMessage": "Contraseña actualizada exitosamente",
-      "backToDashboard": "Volver al dashboard",
       "validation": {
-        "currentRequired": "La contraseña actual es obligatoria",
-        "passwordMin": "Mínimo 8 caracteres",
-        "passwordUppercase": "Debe incluir al menos una mayúscula",
-        "passwordLowercase": "Debe incluir al menos una minúscula",
-        "passwordNumber": "Debe incluir al menos un número",
-        "passwordsMismatch": "Las contraseñas no coinciden"
+        "currentRequired": "La contraseña actual es obligatoria"
       }
     },
     "forgotPassword": {
@@ -99,8 +88,6 @@
     "resetPassword": {
       "title": "Restablecer contraseña",
       "subtitle": "Ingresa tu nueva contraseña",
-      "newPassword": "Nueva contraseña",
-      "confirmPassword": "Confirmar nueva contraseña",
       "submit": "Restablecer contraseña",
       "successMessage": "Contraseña restablecida exitosamente. Ya puedes iniciar sesión.",
       "loginLink": "Ir al inicio de sesión",
@@ -108,38 +95,15 @@
       "tokenMissing": "Token de recuperación no encontrado en la URL",
       "invalidLinkTitle": "Enlace inválido",
       "invalidLinkMessage": "El enlace de recuperación es inválido o ha expirado. Solicita uno nuevo.",
-      "requestNewLink": "Solicitar nuevo enlace",
-      "validation": {
-        "passwordMin": "Mínimo 8 caracteres",
-        "passwordUppercase": "Debe incluir al menos una mayúscula",
-        "passwordLowercase": "Debe incluir al menos una minúscula",
-        "passwordNumber": "Debe incluir al menos un número",
-        "passwordsMismatch": "Las contraseñas no coinciden"
-      }
+      "requestNewLink": "Solicitar nuevo enlace"
     }
   },
   "dashboard": {
     "welcome": "Bienvenido, {{name}}",
-    "subtitle": "Panel de control de tu cuenta",
-    "profileTitle": "Información del perfil",
-    "labelName": "Nombre",
-    "labelEmail": "Correo",
-    "labelStatus": "Estado",
-    "labelMemberSince": "Miembro desde",
-    "labelEmailVerified": "Email verificado",
-    "statusActive": "Activo",
-    "statusInactive": "Inactivo",
-    "statusVerified": "Verificado",
-    "statusNotVerified": "No verificado",
-    "accountStatus": "Estado de la cuenta: {{status}}",
-    "changePasswordButton": "Cambiar contraseña",
-    "languageTitle": "Idioma de la interfaz",
-    "languageSubtitle": "Selecciona el idioma en que se mostrará la aplicación"
+    "subtitle": "Panel de control de tu cuenta"
   },
   "language": {
-    "selector": "Idioma",
-    "es": "Español",
-    "en": "English"
+    "selector": "Idioma"
   },
   "legal": {
     "backToHome": "Volver al inicio",
