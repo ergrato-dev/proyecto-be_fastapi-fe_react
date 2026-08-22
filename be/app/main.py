@@ -20,7 +20,6 @@ from slowapi.errors import RateLimitExceeded
 from app.config import settings
 from app.routers.auth import router as auth_router
 from app.routers.users import router as users_router
-from app.utils.audit_log import log_rate_limit_hit
 
 # ¿Qué? Importación del limiter desde su módulo dedicado.
 # ¿Para qué? Evitar una importación circular — si el limiter se definiera aquí,

@@ -333,7 +333,6 @@ class UpdateLocaleRequest(BaseModel):
         supported_locales = ("es", "en")
         if v not in supported_locales:
             raise ValueError(
-                f"Locale '{v}' no está soportado. "
-                f"Usa uno de: {', '.join(supported_locales)}"
+                f"Locale '{v}' no está soportado. Usa uno de: {', '.join(supported_locales)}"
             )
         return v

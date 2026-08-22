@@ -124,9 +124,7 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> 
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
-            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-        )
+        expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     # ¿Qué? "type": "refresh" diferencia este token del access token.
     # ¿Para qué? Evitar que un refresh token sea usado como access token y viceversa.
     # ¿Impacto? Sin esta distinción, un refresh token podría usarse para acceder a endpoints

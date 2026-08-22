@@ -97,4 +97,3 @@ def update_locale(
     # ¿Impacto? Facilita testear la lógica de negocio sin levantar el servidor HTTP.
     updated_user = update_user_locale(db=db, user=current_user, locale=locale_data.locale)
     return UserResponse.model_validate(updated_user)
-

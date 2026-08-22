@@ -62,8 +62,7 @@ class Settings(BaseSettings):
         """
         if len(v) < 32:  # noqa: PLR2004
             raise ValueError(
-                "SECRET_KEY debe tener al menos 32 caracteres. "
-                "Genera una con: openssl rand -hex 32"
+                "SECRET_KEY debe tener al menos 32 caracteres. Genera una con: openssl rand -hex 32"
             )
         return v
 

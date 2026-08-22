@@ -120,7 +120,4 @@ class EmailVerificationToken(Base):
         ¿Para qué? Facilitar el debugging: ver user_id y estado de uso rápidamente.
         ¿Impacto? NUNCA incluir el token en __repr__ por seguridad.
         """
-        return (
-            f"EmailVerificationToken("
-            f"id={self.id}, user_id={self.user_id}, used={self.used})"
-        )
+        return f"EmailVerificationToken(id={self.id}, user_id={self.user_id}, used={self.used})"

@@ -179,8 +179,7 @@ def login_user(db: Session, login_data: UserLogin) -> TokenResponse:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                "Debes verificar tu email antes de iniciar sesión. "
-                "Revisa tu bandeja de entrada."
+                "Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada."
             ),
         )
 
@@ -378,9 +377,7 @@ def reset_password(db: Session, reset_data: ResetPasswordRequest) -> None:
     # ¿Qué? Buscar el token en la BD.
     # ¿Para qué? Verificar que el token existe y obtener el usuario asociado.
     # ¿Impacto? Si el token no existe, alguien intentó usar un token falso o manipulado.
-    stmt = select(PasswordResetToken).where(
-        PasswordResetToken.token == reset_data.token
-    )
+    stmt = select(PasswordResetToken).where(PasswordResetToken.token == reset_data.token)
     token_record = db.execute(stmt).scalar_one_or_none()
 
     if not token_record:
@@ -445,9 +442,7 @@ def verify_email(db: Session, token: str) -> None:
     # ¿Qué? Buscar el token en la tabla email_verification_tokens.
     # ¿Para qué? Verificar que el token existe y obtener el usuario asociado.
     # ¿Impacto? Si no existe, el usuario envió un token inventado o ya fue procesado.
-    stmt = select(EmailVerificationToken).where(
-        EmailVerificationToken.token == token
-    )
+    stmt = select(EmailVerificationToken).where(EmailVerificationToken.token == token)
     token_record = db.execute(stmt).scalar_one_or_none()
 
     if not token_record:
@@ -547,5 +542,3 @@ def update_user_locale(db: Session, user: User, locale: str) -> User:
     db.refresh(user)
 
     return user
-
-

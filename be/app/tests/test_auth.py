@@ -69,9 +69,7 @@ class TestRegister:
         assert "created_at" in data
         assert "updated_at" in data
 
-    def test_register_duplicate_email(
-        self, client: TestClient, test_user: object
-    ) -> None:
+    def test_register_duplicate_email(self, client: TestClient, test_user: object) -> None:
         """Registro con email duplicado → 400.
 
         ¿Qué? Intenta registrar un usuario con un email que ya existe.
@@ -269,9 +267,7 @@ class TestLogin:
         assert len(data["access_token"]) > 0
         assert len(data["refresh_token"]) > 0
 
-    def test_login_wrong_password(
-        self, client: TestClient, test_user: object
-    ) -> None:
+    def test_login_wrong_password(self, client: TestClient, test_user: object) -> None:
         """Login con contraseña incorrecta → 401.
 
         ¿Qué? Envía email válido con contraseña incorrecta.
@@ -314,7 +310,6 @@ class TestLogin:
         ¿Para qué? Verificar que cuentas desactivadas no pueden acceder.
         ¿Impacto? Sin esto, usuarios suspendidos podrían seguir accediendo al sistema.
         """
-        from app.models.user import User
 
         test_user.is_active = False  # type: ignore[attr-defined]
         db.commit()  # type: ignore[attr-defined]
@@ -330,9 +325,7 @@ class TestLogin:
         assert response.status_code == 403
         assert "desactivada" in response.json()["detail"].lower()
 
-    def test_login_unverified_email(
-        self, client: TestClient, unverified_user: object
-    ) -> None:
+    def test_login_unverified_email(self, client: TestClient, unverified_user: object) -> None:
         """Login con usuario no verificado → 403.
 
         ¿Qué? Intenta hacer login con credenciales válidas pero email sin verificar.
@@ -409,9 +402,7 @@ class TestRefresh:
 
         assert response.status_code == 401
 
-    def test_refresh_with_access_token(
-        self, client: TestClient, test_user: object
-    ) -> None:
+    def test_refresh_with_access_token(self, client: TestClient, test_user: object) -> None:
         """Refresh usando un access token (en vez de refresh) → 401.
 
         ¿Qué? Intenta usar un access token como refresh token.
@@ -563,9 +554,7 @@ class TestForgotPassword:
 
     URL = "/api/v1/auth/forgot-password"
 
-    def test_forgot_password_existing_email(
-        self, client: TestClient, test_user: object
-    ) -> None:
+    def test_forgot_password_existing_email(self, client: TestClient, test_user: object) -> None:
         """Forgot con email existente → 200 + mensaje genérico.
 
         ¿Qué? Solicita recuperación para un email registrado.
@@ -628,9 +617,7 @@ class TestResetPassword:
 
     URL = "/api/v1/auth/reset-password"
 
-    def test_reset_password_success(
-        self, client: TestClient, valid_reset_token: str
-    ) -> None:
+    def test_reset_password_success(self, client: TestClient, valid_reset_token: str) -> None:
         """Reset exitoso → 200 + login funciona con nueva contraseña.
 
         ¿Qué? Usa un token válido para restablecer la contraseña.
@@ -700,9 +687,7 @@ class TestResetPassword:
         assert response.status_code == 400
         assert "expirado" in response.json()["detail"].lower()
 
-    def test_reset_password_used_token(
-        self, client: TestClient, used_reset_token: str
-    ) -> None:
+    def test_reset_password_used_token(self, client: TestClient, used_reset_token: str) -> None:
         """Reset con token ya utilizado → 400.
 
         ¿Qué? Intenta usar un token que ya fue consumido.
@@ -954,9 +939,7 @@ class TestUpdateLocale:
 
     URL = "/api/v1/users/me/locale"
 
-    def test_update_locale_to_en(
-        self, client: TestClient, auth_headers: dict[str, str]
-    ) -> None:
+    def test_update_locale_to_en(self, client: TestClient, auth_headers: dict[str, str]) -> None:
         """PATCH /me/locale con locale="en" → 200 + usuario con locale actualizado.
 
         ¿Qué? Cambia el locale del usuario de "es" (por defecto) a "en".
@@ -973,9 +956,7 @@ class TestUpdateLocale:
         data = response.json()
         assert data["locale"] == "en"
 
-    def test_update_locale_to_es(
-        self, client: TestClient, auth_headers: dict[str, str]
-    ) -> None:
+    def test_update_locale_to_es(self, client: TestClient, auth_headers: dict[str, str]) -> None:
         """PATCH /me/locale con locale="es" → 200 + usuario con locale="es".
 
         ¿Qué? Cambia el locale a español (idioma por defecto del sistema).
@@ -1023,9 +1004,7 @@ class TestUpdateLocale:
 
         assert response.status_code == 401
 
-    def test_update_locale_persists(
-        self, client: TestClient, auth_headers: dict[str, str]
-    ) -> None:
+    def test_update_locale_persists(self, client: TestClient, auth_headers: dict[str, str]) -> None:
         """PATCH a "en" + GET /me → locale="en" persiste en la BD.
 
         ¿Qué? Cambia el locale y luego consulta el perfil para verificar persistencia.
@@ -1044,4 +1023,3 @@ class TestUpdateLocale:
         get_response = client.get("/api/v1/users/me", headers=auth_headers)
         assert get_response.status_code == 200
         assert get_response.json()["locale"] == "en"
-
