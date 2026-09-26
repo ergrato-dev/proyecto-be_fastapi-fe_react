@@ -187,8 +187,15 @@ cd fe && pnpm dev
 
 ### Backend
 
+Los tests usan una **BD exclusiva** (`db-test`, puerto 5433), nunca la de desarrollo: crean y
+borran todas las tablas. Si `TEST_DATABASE_URL` falta o apunta a la BD de desarrollo, se detienen.
+
 ```bash
+# BD de pruebas desechable (una vez por sesión de trabajo)
+docker compose up -d --wait db-test
+
 cd be && source .venv/bin/activate
+# be/.env debe tener TEST_DATABASE_URL (ver be/.env.example)
 
 # Ejecutar todos los tests
 pytest -v

@@ -25,18 +25,26 @@ from app.main import app
 from app.models.password_reset_token import PasswordResetToken
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.user import User
+from app.services import auth_service
 from app.utils.security import create_access_token, hash_password
 
 # ────────────────────────────
 # 🗄️ Configuración de BD de testing
 # ────────────────────────────
 
-# ¿Qué? URL de la BD de testing — usa la misma BD pero con un esquema limpio.
-# ¿Para qué? Aislar los tests de los datos de desarrollo.
-# ¿Impacto? Se usa la misma BD de desarrollo (nn_auth_db) pero las tablas se
-#           crean y destruyen en cada sesión de tests. En un proyecto más grande,
-#           se usaría una BD separada (nn_auth_test_db).
-TEST_DATABASE_URL = settings.DATABASE_URL
+# ¿Qué? URL de la BD de testing, separada de la BD de desarrollo.
+# ¿Para qué? Los tests crean y destruyen TODAS las tablas (drop_all). Sobre la BD de
+#            desarrollo eso borraría los datos con los que trabajas.
+# ¿Impacto? Sin TEST_DATABASE_URL, o si apunta a la misma BD que DATABASE_URL, los tests
+#           se detienen antes de conectarse. Levanta la BD con:
+#           docker compose up -d --wait db-test
+if not settings.TEST_DATABASE_URL:
+    raise RuntimeError(
+        "Define TEST_DATABASE_URL (ver be/.env.example): los tests nunca usan la BD de desarrollo"
+    )
+if settings.TEST_DATABASE_URL == settings.DATABASE_URL:
+    raise RuntimeError("TEST_DATABASE_URL no puede ser la misma BD que DATABASE_URL")
+TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
 # ¿Qué? Engine de SQLAlchemy exclusivo para tests.
 # ¿Para qué? Crear conexiones independientes a la BD de testing.
@@ -155,6 +163,36 @@ def reset_rate_limiter() -> Generator[None, None, None]:
         app.state.limiter._storage.reset()
     except AttributeError:
         pass  # Si el storage no implementa reset(), los límites son suficientemente altos
+
+
+# ────────────────────────────
+# 📧 Doble del envío de emails
+# ────────────────────────────
+
+
+@pytest.fixture(autouse=True)
+def sent_emails(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str, str]]:
+    """Reemplaza el envío real de emails por un fake que solo los registra.
+
+    ¿Qué? Fixture autouse que cambia send_verification_email y send_password_reset_email
+          por funciones que guardan (tipo, email, token) en una lista.
+    ¿Para qué? Que ningún test envíe correos reales, aunque el .env local tenga SMTP_HOST
+               o RESEND_API_KEY configurados.
+    ¿Impacto? Se reemplazan en app.services.auth_service, donde se USAN, no en
+              app.utils.email, donde se definen: auth_service ya importó los nombres.
+              Un test puede pedir este fixture para verificar qué correos se "enviaron".
+    """
+    sent: list[tuple[str, str, str]] = []
+
+    async def fake_verification_email(email: str, token: str) -> None:
+        sent.append(("verification", email, token))
+
+    async def fake_password_reset_email(email: str, token: str) -> None:
+        sent.append(("password_reset", email, token))
+
+    monkeypatch.setattr(auth_service, "send_verification_email", fake_verification_email)
+    monkeypatch.setattr(auth_service, "send_password_reset_email", fake_password_reset_email)
+    return sent
 
 
 # ────────────────────────────

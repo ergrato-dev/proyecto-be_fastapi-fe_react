@@ -47,18 +47,22 @@ jobs:
         env:
           POSTGRES_USER: nn_user
           POSTGRES_PASSWORD: nn_password
-          POSTGRES_DB: nn_auth_db
+          POSTGRES_DB: nn_auth_test
         ports:
-          - 5432:5432
+          # Mismo puerto que el servicio db-test del docker-compose.yml
+          - 5433:5432
         options: >-
-          --health-cmd "pg_isready -U nn_user -d nn_auth_db"
+          --health-cmd "pg_isready -U nn_user -d nn_auth_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
 
     env:
       # Credenciales del servicio de arriba — desechables, existen solo durante el job.
+      # Los tests usan TEST_DATABASE_URL. DATABASE_URL es obligatoria para la app, pero
+      # debe ser otra BD: conftest.py se detiene si ambas coinciden.
       DATABASE_URL: postgresql://nn_user:nn_password@localhost:5432/nn_auth_db
+      TEST_DATABASE_URL: postgresql://nn_user:nn_password@localhost:5433/nn_auth_test
       # SECRET_KEY exige mínimo 32 caracteres (be/app/config.py). Valor de prueba, nunca real.
       SECRET_KEY: ci-test-secret-key-not-for-production-32
       ENVIRONMENT: testing

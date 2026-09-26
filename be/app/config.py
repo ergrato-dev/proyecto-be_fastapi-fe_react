@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     # ¿Impacto? Si es incorrecta, ninguna operación de lectura/escritura a la BD funcionará.
     DATABASE_URL: str
 
+    # ¿Qué? URL de la BD exclusiva para los tests (servicio db-test del docker-compose).
+    # ¿Para qué? Que pytest nunca toque la BD de desarrollo: los tests crean y borran tablas.
+    # ¿Impacto? Si falta o apunta a la misma BD que DATABASE_URL, conftest.py detiene los
+    #           tests antes de conectarse. La app no la usa: solo la leen los tests.
+    TEST_DATABASE_URL: str | None = None
+
     # ────────────────────────────
     # 🔐 JWT y Seguridad
     # ────────────────────────────
