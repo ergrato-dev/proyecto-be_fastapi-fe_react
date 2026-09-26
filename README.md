@@ -185,6 +185,9 @@ cd fe && pnpm dev
 
 ## 🧪 Testing
 
+> 🔎 Este proyecto tiene defectos reales documentados para practicar testing en clase:
+> [`docs/testing/hallazgos.md`](docs/testing/hallazgos.md).
+
 ### Backend
 
 Los tests usan una **BD exclusiva** (`db-test`, puerto 5433), nunca la de desarrollo: crean y
