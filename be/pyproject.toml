@@ -51,3 +51,20 @@ packages = ["app"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["app/tests"]
+# ¿Qué? Cada `pytest` mide la cobertura y falla si baja del umbral (fail_under).
+# ¿Para qué? Que el CI rechace cualquier PR que agregue lógica sin tests.
+addopts = "--cov --cov-report=term-missing"
+
+# ¿Qué? Qué código mide la cobertura: la lógica de negocio de app/.
+# ¿Impacto? Quedan fuera los tests y el adaptador de email (app/utils/email.py), que
+#           representa un servicio externo (SMTP/Resend) y en los tests se reemplaza
+#           por un doble (fixture sent_emails en conftest.py).
+[tool.coverage.run]
+source = ["app"]
+branch = true
+omit = ["app/tests/*", "app/utils/email.py"]
+
+[tool.coverage.report]
+# ¿Qué? Umbral mínimo de cobertura (líneas + ramas). La cobertura real es mayor (~92%);
+#       el umbral solo sube, nunca baja.
+fail_under = 80

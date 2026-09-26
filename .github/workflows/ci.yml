@@ -96,8 +96,20 @@ jobs:
       - name: Formato (ruff format --check)
         run: uv run ruff format --check app/
 
-      - name: Tests (pytest)
-        run: uv run pytest -v
+      # ¿Qué? pytest mide la cobertura en cada corrida (addopts en pyproject.toml).
+      # ¿Impacto? Si baja del umbral (fail_under), este paso falla y el PR no se fusiona.
+      - name: Tests + cobertura (pytest)
+        run: uv run pytest -v --cov-report=html
+
+      # ¿Qué? Guarda el reporte HTML de cobertura para descargarlo desde la pestaña Actions.
+      # ¿Para qué? Revisar las líneas y ramas sin cubrir sin correr nada en local.
+      # actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: coverage-backend
+          path: be/htmlcov/
+          retention-days: 7
 
   # ────────────────────────────
   # ⚛️ Frontend — ESLint + Prettier + build + vitest
@@ -125,7 +137,7 @@ jobs:
       - name: Instalar Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: fe/pnpm-lock.yaml
 
@@ -144,5 +156,14 @@ jobs:
       - name: Build (tsc + vite)
         run: pnpm build
 
-      - name: Tests (vitest)
-        run: pnpm test
+      # ¿Qué? Tests con cobertura; falla si baja de los thresholds de vite.config.ts.
+      - name: Tests + cobertura (vitest)
+        run: pnpm test:coverage
+
+      # actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: coverage-frontend
+          path: fe/coverage/
+          retention-days: 7

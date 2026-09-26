@@ -36,14 +36,26 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "text-summary"],
+      // ¿Qué? "html" genera coverage/index.html, que el CI sube como artefacto.
+      reporter: ["text", "text-summary", "html"],
       include: ["src/**/*.{ts,tsx}"],
+      // ¿Qué? Se mide la lógica de la interfaz. Quedan fuera los tests, el arranque
+      //       (main.tsx, App.tsx con las rutas), la configuración (i18n.ts), los tipos y el
+      //       cliente HTTP (src/api), que se prueba con MSW a nivel de red.
       exclude: [
-        "src/__tests__/setup.ts",
+        "src/__tests__/**",
         "src/main.tsx",
+        "src/App.tsx",
+        "src/i18n.ts",
         "src/vite-env.d.ts",
         "src/types/**",
+        "src/api/**",
       ],
+      // ¿Qué? Umbral mínimo: `pnpm test:coverage` falla si la cobertura baja de aquí.
+      // ¿Impacto? Es la cobertura real redondeada hacia abajo (regla de trinquete): solo
+      //           sube, PR a PR, hasta el 80%. Sin cubrir aún: AuthContext, Navbar,
+      //           AppLayout y ContactPage.
+      thresholds: { statements: 64, branches: 67, functions: 62, lines: 65 },
     },
   },
 });
