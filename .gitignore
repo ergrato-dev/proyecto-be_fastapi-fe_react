@@ -55,6 +55,10 @@ fe/.vite/
 # Vitest
 fe/coverage/
 
+# Playwright (e2e/): resultados y reporte HTML generados en cada corrida
+e2e/test-results/
+e2e/playwright-report/
+
 # ────────────────────────────
 # 🔐 Variables de entorno
 # ────────────────────────────

@@ -152,6 +152,13 @@ class Settings(BaseSettings):
     #           Valores válidos: "development" | "production" | "testing"
     ENVIRONMENT: str = "development"
 
+    # ¿Qué? Activa o desactiva el rate limiting de los endpoints de autenticación.
+    # ¿Para qué? Los tests E2E registran e inician sesión muchas veces desde la misma IP y
+    #            chocarían con el límite (ej: 5 registros por minuto) al azar.
+    # ¿Impacto? OWASP A04 — debe quedar en True en cualquier entorno real. Solo el entorno
+    #           E2E (e2e/playwright.config.js) lo pone en False.
+    RATE_LIMIT_ENABLED: bool = True
+
     # ¿Qué? Configuración del modelo Pydantic Settings.
     # ¿Para qué? Indicar que las variables se cargan desde el archivo .env en la carpeta be/.
     # ¿Impacto? Sin esto, Pydantic no lee el archivo .env y solo busca variables del sistema.

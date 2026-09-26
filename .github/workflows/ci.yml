@@ -167,3 +167,86 @@ jobs:
           name: coverage-frontend
           path: fe/coverage/
           retention-days: 7
+
+  # ────────────────────────────
+  # 🎭 E2E — Playwright contra backend + frontend + PostgreSQL + Mailpit
+  # ────────────────────────────
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-24.04
+
+    # ¿Qué? La BD de pruebas y Mailpit como servicios del job.
+    # ¿Para qué? El test de registro lee el enlace de verificación desde la API de Mailpit.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: nn_user
+          POSTGRES_PASSWORD: nn_password
+          POSTGRES_DB: nn_auth_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U nn_user -d nn_auth_test"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+      mailpit:
+        image: axllent/mailpit:v1.31.1
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    steps:
+      # actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      # astral-sh/setup-uv@v10.0.1 — Playwright arranca el backend con `uv run`
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+        with:
+          version: "0.12.5"
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Instalar dependencias del backend
+        working-directory: be
+        run: uv sync --frozen
+
+      # pnpm/action-setup@v6.0.10
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 11.0.9
+
+      # actions/setup-node@v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: |
+            fe/pnpm-lock.yaml
+            e2e/pnpm-lock.yaml
+
+      # ¿Qué? Playwright levanta el frontend con vite: necesita sus dependencias.
+      - name: Instalar dependencias del frontend
+        working-directory: fe
+        run: pnpm install --frozen-lockfile
+
+      - name: Instalar Playwright y Chromium
+        working-directory: e2e
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+
+      # ¿Qué? playwright.config.js migra la BD, arranca FastAPI y vite, y corre los tests.
+      - name: Tests E2E (Playwright)
+        working-directory: e2e
+        run: pnpm test
+
+      # ¿Qué? Si algo falla, el reporte HTML (con trazas) queda descargable.
+      # actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

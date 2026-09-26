@@ -29,7 +29,10 @@ config = context.config
 # ¿Qué? Sobreescribimos la URL de la BD con el valor de nuestro archivo .env.
 # ¿Para qué? Evitar hardcodear credenciales en alembic.ini.
 # ¿Impacto? Alembic usará la misma DATABASE_URL que el backend, garantizando consistencia.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+#           Si quien invoca a Alembic ya fijó una URL (los tests, con TEST_DATABASE_URL),
+#           se respeta esa: así las migraciones corren sobre la BD de pruebas.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # ¿Qué? Configura el sistema de logging de Python según alembic.ini.
 # ¿Para qué? Ver mensajes informativos durante las migraciones (ej: "Running upgrade ...").

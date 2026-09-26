@@ -14,12 +14,13 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
-from app.database import Base
 from app.dependencies import get_db
 from app.main import app
 from app.models.password_reset_token import PasswordResetToken
@@ -68,17 +69,18 @@ TestSessionLocal = sessionmaker(
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database() -> Generator[None, None, None]:
-    """Crea y destruye las tablas de la BD al inicio y fin de la sesión de tests.
+    """Aplica las migraciones de Alembic a la BD de testing al inicio de la sesión.
 
-    ¿Qué? Fixture que se ejecuta UNA vez por sesión de pytest.
-    ¿Para qué? Crear todas las tablas antes de que corran los tests y limpiarlas al terminar.
-    ¿Impacto? scope="session" significa que las tablas se crean una sola vez (eficiente),
-              no por cada test individual.
+    ¿Qué? Fixture que se ejecuta UNA vez por sesión de pytest: `alembic upgrade head`.
+    ¿Para qué? Que la BD de testing tenga exactamente el esquema de producción, creado por
+              las mismas migraciones. Si una migración está rota, falla aquí y no en el despliegue.
+    ¿Impacto? No se borran tablas: cada test deshace sus cambios con rollback (fixture `db`).
+              Así la misma BD sirve también a los tests E2E, que migran con el mismo comando.
     """
-    Base.metadata.drop_all(bind=test_engine)
-    Base.metadata.create_all(bind=test_engine)
+    alembic_config = Config("alembic.ini")
+    alembic_config.set_main_option("sqlalchemy.url", TEST_DATABASE_URL)
+    command.upgrade(alembic_config, "head")
     yield
-    Base.metadata.drop_all(bind=test_engine)
 
 
 @pytest.fixture()

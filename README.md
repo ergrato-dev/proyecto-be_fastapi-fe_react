@@ -222,6 +222,26 @@ pnpm test:watch
 pnpm test:coverage
 ```
 
+### E2E (Playwright)
+
+Prueban los flujos críticos en un navegador real: registro, verificación del correo (leído
+desde Mailpit), inicio de sesión y dashboard. Playwright levanta el backend (con migraciones)
+y el frontend por su cuenta; antes hay que levantar la BD de pruebas y Mailpit.
+
+```bash
+docker compose up -d --wait db-test mailpit
+
+cd e2e
+pnpm install
+pnpm exec playwright install chromium   # solo la primera vez
+
+pnpm test          # todos los E2E
+pnpm test:ui       # modo interactivo, paso a paso
+pnpm report        # reporte HTML de la última corrida
+```
+
+> Si los puertos 8000 o 5173 están ocupados: `API_PORT=8100 FRONT_PORT=5180 pnpm test`.
+
 ### Linting
 
 ```bash
