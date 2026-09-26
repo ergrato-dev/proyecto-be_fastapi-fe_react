@@ -13,6 +13,8 @@ Descripción: Instancia centralizada del rate limiter de slowapi.
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from app.config import settings
+
 # ¿Qué? Instancia global del rate limiter compartida por main.py y todos los routers.
 # ¿Para qué? Los decoradores @limiter.limit() en los routers necesitan referenciar
 #            el MISMO objeto Limiter que está registrado en app.state.limiter.
@@ -24,4 +26,5 @@ from slowapi.util import get_remote_address
 # get_remote_address: extrae la IP del cliente desde request.client.host.
 # En producción detrás de un proxy/load balancer (nginx, AWS ALB), configurar
 # el proxy para enviar X-Forwarded-For y usar get_ipaddr en su lugar.
-limiter = Limiter(key_func=get_remote_address)
+# ¿Qué? enabled=False desactiva todos los límites (solo para los tests E2E; ver config.py).
+limiter = Limiter(key_func=get_remote_address, enabled=settings.RATE_LIMIT_ENABLED)

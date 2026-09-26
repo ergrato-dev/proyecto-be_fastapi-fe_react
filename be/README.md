@@ -111,7 +111,8 @@ be/
     │   └── audit_log.py    # Registro estructurado de eventos de seguridad
     └── tests/
         ├── conftest.py     # Fixtures compartidos entre tests
-        └── test_auth.py    # 38 tests de los endpoints de autenticación
+        ├── test_auth.py    # 43 tests de los endpoints de autenticación
+        └── test_security.py # 5 tests unitarios de hashing y JWT
 ```
 
 > **El patrón de capas**
@@ -1134,6 +1135,13 @@ async def add_security_headers(request, call_next):
 
 ### 17.1 Arquitectura de testing
 
+Los tests corren sobre una **BD exclusiva para pruebas**: el servicio `db-test` del
+`docker-compose.yml` (puerto 5433, BD `nn_auth_test`), levantado con
+`docker compose up -d --wait db-test`. `conftest.py` lee `TEST_DATABASE_URL` y se detiene si
+falta o si es la misma BD que `DATABASE_URL`: los tests borran tablas y nunca deben tocar tus
+datos de desarrollo. El envío de emails se reemplaza por un fake (fixture `sent_emails`), así
+ningún test manda correos reales.
+
 Los tests usan **rollback por función** para garantizar aislamiento total:
 
 ```
@@ -1220,7 +1228,7 @@ pytest app/tests/test_auth.py -v
 | `app/dependencies.py`          | ≥ 85%     |
 | **Total**                      | **≥ 90%** |
 
-### 17.5 Tests existentes (38 tests)
+### 17.5 Tests existentes (43 tests de API)
 
 | Clase de test           | Endpoint              | Casos cubiertos                                                                       |
 | ----------------------- | --------------------- | ------------------------------------------------------------------------------------- |

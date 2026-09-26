@@ -14,29 +14,38 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
-from app.database import Base
 from app.dependencies import get_db
 from app.main import app
 from app.models.password_reset_token import PasswordResetToken
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.user import User
+from app.services import auth_service
 from app.utils.security import create_access_token, hash_password
 
 # ────────────────────────────
 # 🗄️ Configuración de BD de testing
 # ────────────────────────────
 
-# ¿Qué? URL de la BD de testing — usa la misma BD pero con un esquema limpio.
-# ¿Para qué? Aislar los tests de los datos de desarrollo.
-# ¿Impacto? Se usa la misma BD de desarrollo (nn_auth_db) pero las tablas se
-#           crean y destruyen en cada sesión de tests. En un proyecto más grande,
-#           se usaría una BD separada (nn_auth_test_db).
-TEST_DATABASE_URL = settings.DATABASE_URL
+# ¿Qué? URL de la BD de testing, separada de la BD de desarrollo.
+# ¿Para qué? Los tests crean y destruyen TODAS las tablas (drop_all). Sobre la BD de
+#            desarrollo eso borraría los datos con los que trabajas.
+# ¿Impacto? Sin TEST_DATABASE_URL, o si apunta a la misma BD que DATABASE_URL, los tests
+#           se detienen antes de conectarse. Levanta la BD con:
+#           docker compose up -d --wait db-test
+if not settings.TEST_DATABASE_URL:
+    raise RuntimeError(
+        "Define TEST_DATABASE_URL (ver be/.env.example): los tests nunca usan la BD de desarrollo"
+    )
+if settings.TEST_DATABASE_URL == settings.DATABASE_URL:
+    raise RuntimeError("TEST_DATABASE_URL no puede ser la misma BD que DATABASE_URL")
+TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
 # ¿Qué? Engine de SQLAlchemy exclusivo para tests.
 # ¿Para qué? Crear conexiones independientes a la BD de testing.
@@ -60,17 +69,18 @@ TestSessionLocal = sessionmaker(
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database() -> Generator[None, None, None]:
-    """Crea y destruye las tablas de la BD al inicio y fin de la sesión de tests.
+    """Aplica las migraciones de Alembic a la BD de testing al inicio de la sesión.
 
-    ¿Qué? Fixture que se ejecuta UNA vez por sesión de pytest.
-    ¿Para qué? Crear todas las tablas antes de que corran los tests y limpiarlas al terminar.
-    ¿Impacto? scope="session" significa que las tablas se crean una sola vez (eficiente),
-              no por cada test individual.
+    ¿Qué? Fixture que se ejecuta UNA vez por sesión de pytest: `alembic upgrade head`.
+    ¿Para qué? Que la BD de testing tenga exactamente el esquema de producción, creado por
+              las mismas migraciones. Si una migración está rota, falla aquí y no en el despliegue.
+    ¿Impacto? No se borran tablas: cada test deshace sus cambios con rollback (fixture `db`).
+              Así la misma BD sirve también a los tests E2E, que migran con el mismo comando.
     """
-    Base.metadata.drop_all(bind=test_engine)
-    Base.metadata.create_all(bind=test_engine)
+    alembic_config = Config("alembic.ini")
+    alembic_config.set_main_option("sqlalchemy.url", TEST_DATABASE_URL)
+    command.upgrade(alembic_config, "head")
     yield
-    Base.metadata.drop_all(bind=test_engine)
 
 
 @pytest.fixture()
@@ -155,6 +165,36 @@ def reset_rate_limiter() -> Generator[None, None, None]:
         app.state.limiter._storage.reset()
     except AttributeError:
         pass  # Si el storage no implementa reset(), los límites son suficientemente altos
+
+
+# ────────────────────────────
+# 📧 Doble del envío de emails
+# ────────────────────────────
+
+
+@pytest.fixture(autouse=True)
+def sent_emails(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str, str]]:
+    """Reemplaza el envío real de emails por un fake que solo los registra.
+
+    ¿Qué? Fixture autouse que cambia send_verification_email y send_password_reset_email
+          por funciones que guardan (tipo, email, token) en una lista.
+    ¿Para qué? Que ningún test envíe correos reales, aunque el .env local tenga SMTP_HOST
+               o RESEND_API_KEY configurados.
+    ¿Impacto? Se reemplazan en app.services.auth_service, donde se USAN, no en
+              app.utils.email, donde se definen: auth_service ya importó los nombres.
+              Un test puede pedir este fixture para verificar qué correos se "enviaron".
+    """
+    sent: list[tuple[str, str, str]] = []
+
+    async def fake_verification_email(email: str, token: str) -> None:
+        sent.append(("verification", email, token))
+
+    async def fake_password_reset_email(email: str, token: str) -> None:
+        sent.append(("password_reset", email, token))
+
+    monkeypatch.setattr(auth_service, "send_verification_email", fake_verification_email)
+    monkeypatch.setattr(auth_service, "send_password_reset_email", fake_password_reset_email)
+    return sent
 
 
 # ────────────────────────────

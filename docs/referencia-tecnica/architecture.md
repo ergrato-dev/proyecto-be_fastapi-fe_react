@@ -11,7 +11,7 @@
 
 > **Proyecto**: NN Auth System 
 > **Stack**: FastAPI (Python 3.12) + React (TypeScript) + PostgreSQL 17 + Docker
-> **Tests**: 38/38 backend · 136/136 frontend
+> **Tests**: 48/48 backend (43 de API + 5 unitarios) · 165/165 frontend · 3 E2E (Playwright)
 
 ---
 

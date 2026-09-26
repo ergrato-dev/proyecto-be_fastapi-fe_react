@@ -185,10 +185,20 @@ cd fe && pnpm dev
 
 ## 🧪 Testing
 
+> 🔎 Este proyecto tiene defectos reales documentados para practicar testing en clase:
+> [`docs/testing/hallazgos.md`](docs/testing/hallazgos.md).
+
 ### Backend
 
+Los tests usan una **BD exclusiva** (`db-test`, puerto 5433), nunca la de desarrollo: crean y
+borran todas las tablas. Si `TEST_DATABASE_URL` falta o apunta a la BD de desarrollo, se detienen.
+
 ```bash
+# BD de pruebas desechable (una vez por sesión de trabajo)
+docker compose up -d --wait db-test
+
 cd be && source .venv/bin/activate
+# be/.env debe tener TEST_DATABASE_URL (ver be/.env.example)
 
 # Ejecutar todos los tests
 pytest -v
@@ -214,6 +224,26 @@ pnpm test:watch
 # Ejecutar con cobertura
 pnpm test:coverage
 ```
+
+### E2E (Playwright)
+
+Prueban los flujos críticos en un navegador real: registro, verificación del correo (leído
+desde Mailpit), inicio de sesión y dashboard. Playwright levanta el backend (con migraciones)
+y el frontend por su cuenta; antes hay que levantar la BD de pruebas y Mailpit.
+
+```bash
+docker compose up -d --wait db-test mailpit
+
+cd e2e
+pnpm install
+pnpm exec playwright install chromium   # solo la primera vez
+
+pnpm test          # todos los E2E
+pnpm test:ui       # modo interactivo, paso a paso
+pnpm report        # reporte HTML de la última corrida
+```
+
+> Si los puertos 8000 o 5173 están ocupados: `API_PORT=8100 FRONT_PORT=5180 pnpm test`.
 
 ### Linting
 

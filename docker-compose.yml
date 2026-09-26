@@ -7,6 +7,7 @@
 # ─────────────────────────────────────────────────
 # SERVICIOS:
 #   db  → PostgreSQL 17 (puerto 5432)
+#   db-test → PostgreSQL 17 SOLO para tests (puerto 5433, sin volumen)
 #   be  → FastAPI + Uvicorn (puerto 8000) — depende de db
 #   fe  → React + Nginx (puerto 80) — depende de be
 # ─────────────────────────────────────────────────
@@ -62,6 +63,36 @@ services:
 
     networks:
       - nn_auth_network
+
+  # ────────────────────────────
+  # 🧪 PostgreSQL 17 — Base de datos SOLO para tests
+  # ────────────────────────────
+  db-test:
+    # ¿Qué? Segunda instancia de PostgreSQL, exclusiva para pytest.
+    # ¿Para qué? Los tests crean y borran todas las tablas: nunca deben correr sobre la BD
+    #            de desarrollo. Se levanta sola: docker compose up -d --wait db-test
+    # ¿Impacto? Es desechable: sin volumen, `docker compose down` borra sus datos y la
+    #           siguiente corrida empieza limpia. TEST_DATABASE_URL apunta aquí.
+    image: postgres:17-alpine
+    container_name: nn_auth_db_test
+
+    environment:
+      # Credenciales de una BD local desechable, no de producción.
+      POSTGRES_USER: nn_user
+      POSTGRES_PASSWORD: nn_password
+      POSTGRES_DB: nn_auth_test
+
+    ports:
+      # ¿Qué? Puerto 5433 en el host, distinto al 5432 de la BD de desarrollo.
+      # ¿Impacto? Si una URL de tests apunta al puerto equivocado, el nombre nn_auth_test lo delata.
+      - "5433:5432"
+
+    healthcheck:
+      # ¿Qué? `--wait` espera este healthcheck antes de devolver el control.
+      test: ["CMD-SHELL", "pg_isready -U nn_user -d nn_auth_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
 
   # ────────────────────────────
   # 🐍 Backend — FastAPI + Uvicorn
@@ -192,7 +223,7 @@ services:
     #            No requiere cuenta, ni dominio registrado, ni configuración extra.
     # ¿Impacto? Todos los emails enviados por el backend aparecen en http://localhost:8025.
     #           NADA sale a internet — perfecto para desarrollo en clase o proyectos SENA.
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:v1.31.1
     container_name: nn_auth_mailpit
     restart: unless-stopped
 

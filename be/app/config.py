@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     # ¿Impacto? Si es incorrecta, ninguna operación de lectura/escritura a la BD funcionará.
     DATABASE_URL: str
 
+    # ¿Qué? URL de la BD exclusiva para los tests (servicio db-test del docker-compose).
+    # ¿Para qué? Que pytest nunca toque la BD de desarrollo: los tests crean y borran tablas.
+    # ¿Impacto? Si falta o apunta a la misma BD que DATABASE_URL, conftest.py detiene los
+    #           tests antes de conectarse. La app no la usa: solo la leen los tests.
+    TEST_DATABASE_URL: str | None = None
+
     # ────────────────────────────
     # 🔐 JWT y Seguridad
     # ────────────────────────────
@@ -145,6 +151,13 @@ class Settings(BaseSettings):
     #           schemas y modelos sin autenticación, facilitando el reconocimiento previo a un ataque.
     #           Valores válidos: "development" | "production" | "testing"
     ENVIRONMENT: str = "development"
+
+    # ¿Qué? Activa o desactiva el rate limiting de los endpoints de autenticación.
+    # ¿Para qué? Los tests E2E registran e inician sesión muchas veces desde la misma IP y
+    #            chocarían con el límite (ej: 5 registros por minuto) al azar.
+    # ¿Impacto? OWASP A04 — debe quedar en True en cualquier entorno real. Solo el entorno
+    #           E2E (e2e/playwright.config.js) lo pone en False.
+    RATE_LIMIT_ENABLED: bool = True
 
     # ¿Qué? Configuración del modelo Pydantic Settings.
     # ¿Para qué? Indicar que las variables se cargan desde el archivo .env en la carpeta be/.
