@@ -11,6 +11,10 @@ permissions:
 
 jobs:
   close-pr:
+    # ¿Qué? Solo cierra PR que vienen de un fork (un repositorio distinto a este).
+    # ¿Para qué? Los PR externos se siguen cerrando; los PR de ramas de este mismo repo,
+    #   abiertos por el mantenedor, se revisan y fusionan con normalidad.
+    if: github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     steps:
       - name: Cerrar PR automáticamente
